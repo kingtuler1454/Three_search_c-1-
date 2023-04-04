@@ -11,6 +11,7 @@
 # include <clocale>
 #include <conio.h>
 #include<vector>
+
 using namespace std;
 class Three {
 	struct Leaves {
@@ -18,6 +19,7 @@ class Three {
 		Leaves* Left = nullptr;
 		Leaves* Right = nullptr;
 	};
+	int count = 0;
 	Leaves* root = new Leaves;
 	Leaves* rec_erase(Leaves* elem, int key) {
 		if (elem == NULL) return elem;
@@ -46,6 +48,8 @@ class Three {
 				elem->value = tmp->value;
 				elem->Right = rec_erase(elem->Right, tmp->value);
 			}
+			this->count--;
+
 		}
 		return elem;
 	}
@@ -131,11 +135,14 @@ public:
 	Three(Three &src) {
 		root = NULL;
 		copy(root, src.root);
+		this->count = src.count;
 	}
-	~Three() { clear (root); }
+	~Three() { clear (root); this->count = 0;
+	}
 	Three(int key) {
 		//Leaves* root = new Leaves;
 		root->value = key;
+		this->count = 1;
 	}
 	void print() {
 		rec_print(this->root);
@@ -146,10 +153,14 @@ public:
 		if (this == (&src)) { return *this; }
 		clear(root);
 		copy(root, src.root);
+		this->count = src.count;
 		return *this;
 	}
 	bool insert(int key) {
-		return rec_insert(this->root, key);
+
+		bool tmp=rec_insert(this->root, key);
+		if (tmp) this->count++;
+		return tmp;
 
 	}//вставка элемента
 	bool contains(int key) {
@@ -158,8 +169,11 @@ public:
 	} //проверка наличия элемента
 
 	int FindM() {
-		
-		return (FindMin(this->root))->value;
+		if (this->count == 0) {
+			cout << "Нет элементов";
+			return 0;
+		}
+		else return (FindMin(this->root))->value;
 	}
 	void erase(int key) { 
 		this->root=rec_erase(this->root, key);
@@ -173,106 +187,124 @@ size_t lcg() {
 	x = (1021 * x + 24631) % 116640;
 	return x;
 }
+#include <chrono>
+using namespace std::chrono;
+double TestFirst(int value) {
+	 double sum = 0;
 
-float TestFirst(int value) {
+	//для 100 раз
+	for (int j = 0; j < 100; j++) {
+		//Отсечь  время
+		auto start = high_resolution_clock::now();
+		Three B(lcg());
+		for (int i = 0; i < value - 1; i++) B.insert(lcg());
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum+=(double)duration.count();
+	}
+	//остановить время
+	//время добавить в вектор
+
+	//сумму вектора времени делим на 100 и возвращаем
+	return sum/100;
+}
+double TestSecond(int value) {
+	double  sum = 0;
+	//для 1000 раз
+	//Отсечь  время
+	for (int j = 0; j < 1000; j++) {
+		Three B(lcg());
+		for (int j=0;j<value;j++) B.insert(lcg());
+		auto start = high_resolution_clock::now();
+		for (int i = 0; i < value - 1; i++)B.contains(lcg());
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum += (double)duration.count();
+	}
+	//остановить время
+	//время добавить в вектор
+
+	//сумму вектора времени делим на 1000 и возвращаем
+	return sum/1000;
+}
+double TestThird(int value) {
+
+	double  sum = 0;
+	//для 1000 раз
+	//Отсечь  время
+	for (int j = 0; j < 1000; j++) {
+		auto start = high_resolution_clock::now();
+		Three B(lcg());
+		for (int i = 0; i < value - 1; i++)B.insert(lcg());
+		for (int i = 0; i < value - 1; i++)B.erase(lcg());
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum += (double)duration.count();
+	}
+	//остановить время
+	//время добавить в вектор
+
+	//сумму вектора времени делим на 1000 и возвращаем
+	return sum/1000;
+}
+
+double TestVectorFirst(int value) {
 	
+	vector<int> TimeVector(value);
 	//для 100 раз
-	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
+	double sum = 0;
+	for (int j = 0; j < 100; j++)
 	{
-		B.insert(lcg());
+		auto start = high_resolution_clock::now();
+		for (int i = 0; i < value - 1; i++)  TimeVector.push_back(lcg());
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum += (double)duration.count();
 	}
-	//остановить время
 	//время добавить в вектор
 
 	//сумму вектора времени делим на 100 и возвращаем
-	return 1;
+	return sum/100;
 }
-float TestSecond(int value) {
+double TestVectorSecond(int value) {
 
 	//для 1000 раз
 	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.contains(lcg());
-	}
-	//остановить время
-	//время добавить в вектор
-
-	//сумму вектора времени делим на 1000 и возвращаем
-	return 1;
-}
-
-float TestThird(int value) {
-
-	//для 1000 раз
-	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.insert(lcg());
-	}
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.erase(lcg());
-	}
-	//остановить время
-	//время добавить в вектор
-
-	//сумму вектора времени делим на 1000 и возвращаем
-	return 1;
-}
-float TestVectorFirst(int value) {
-
+	vector<int> TimeVector(value);
 	//для 100 раз
-	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.insert(lcg());
+	double sum = 0;
+	for (int j = 0; j < 1000; j++) {
+		auto start = high_resolution_clock::now();
+		for (int i = 0; i < value - 1; i++)TimeVector.push_back(lcg());//=================
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum += (double)duration.count();
 	}
 	//остановить время
-	//время добавить в вектор
 
-	//сумму вектора времени делим на 100 и возвращаем
-	return 1;
-}
-float TestVectorSecond(int value) {
-
-	//для 1000 раз
-	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.contains(lcg());
-	}
-	//остановить время
-	//время добавить в вектор
 
 	//сумму вектора времени делим на 1000 и возвращаем
-	return 1;
+	return sum/1000;
 }
-
-float TestVectorThird(int value) {
-
+double TestVectorThird(int value) {
+	vector<int> TimeVector(value);
 	//для 1000 раз
 	//Отсечь  время
-	Three B(lcg());
-	for (int i = 0; i < value - 1; i++)
+	double sum = 0;
+	for (int j = 0; j < 1000; j++)
 	{
-		B.insert(lcg());
+		auto start = high_resolution_clock::now();
+		for (int i = 0; i < value - 1; i++)TimeVector.push_back(lcg());
+		//for (int i = 0; i < value - 1; i++)TimeVector.erase(lcg()<int>);//////////////
+		auto stop = high_resolution_clock::now();
+		chrono::duration<double> duration = stop - start;
+		sum += (double)duration.count();
 	}
-	for (int i = 0; i < value - 1; i++)
-	{
-		B.erase(lcg());
-	}
-	//остановить время
-	//время добавить в вектор
+
+
 
 	//сумму вектора времени делим на 1000 и возвращаем
-	return 1;
+	return sum / 1000;
 }
 
 void RecElem() {
@@ -288,25 +320,11 @@ void RecElem() {
 			если count>1:  elem1 добавим в вектор2
 
 	cout<<"Повторяющиеся элементы: "<< вектор2
+}*/
 }
 
-
 int main() {
-	/*Three A(20);
-	A.insert(-110);
-	A.insert(25);
-	A.insert(5);
-	A.insert(10);
-	A.insert(30);
-	A.insert(22);
-
-	A.print();
-	cout<<A.contains(100);
-	cout << A.Find();
-	A.erase(25);
-	cout << endl;
-	A.print();
-	*/
+	
 	setlocale(LC_ALL, "Russian");
 	int tmp_value;
 	cout << "Введите значение первого элемена дерева: ";
@@ -326,22 +344,26 @@ int main() {
 			cin >> tmp_value;
 			if (A.insert(tmp_value)) cout << "\nУспешно";
 			else cout << "\nНе получилось";
+			tmp_value = 0;
 			_getch();
 			break;
 		case 2:
 			cout << "Введите значение удаляемого элемента:";
 			cin >> tmp_value;
 			A.erase(tmp_value);
+			tmp_value = 0;
 			break;
 		case 3:
 			cout << "Введите элемент:";
 			cin >> tmp_value;
 			if (A.contains(tmp_value)) cout << "\nСуществует";
 			else cout << "\nНе существует";
+			tmp_value = 0;
 			_getch();
 		case 4:
-			cout << "Минимальное значение дерева : "<<A.FindM();
+			if (A.FindM())cout << "Минимальное значение дерева : " << A.FindM();
 			_getch();
+			break;
 		case 5:
 			do {
 				cout << "Выберите сколько значений протестируем:\n1) 1000 \n2) 10 000\n3) 100 000  \n4)Отмена";
@@ -350,7 +372,7 @@ int main() {
 				{
 				case 1:
 					//сохраняем в вектор ячейка 1
-					cout<<"Среднее время выполения теста: "<<TestFirst(1000);
+					cout << "Среднее время выполения теста: " << TestFirst(1000);
 					_getch();
 					break;
 				case 2:
@@ -372,6 +394,7 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 6:
 			do {
@@ -403,10 +426,11 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 7:
 			do {
-				cout << "Выберите сколько значений протестируем:\n1) 1000 \n2) 10 000\n 3) 100 000  \n4)Отмена";
+				cout << "Выберите сколько значений протестируем:\n1) 1000 \n2) 10 000\n3) 100 000  \n4)Отмена";
 				cin >> tmp_value;
 				switch (tmp_value)
 				{
@@ -434,6 +458,7 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 8:
 			do {
@@ -465,6 +490,7 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 9:
 			do {
@@ -496,10 +522,11 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 10:
 			do {
-				cout << "Выберите сколько значений протестируем:\n1) 1000 \n2) 10 000\n 3) 100 000  \n4)Отмена";
+				cout << "Выберите сколько значений протестируем:\n1) 1000 \n2) 10 000\n3) 100 000  \n4)Отмена";
 				cin >> tmp_value;
 				switch (tmp_value)
 				{
@@ -527,6 +554,7 @@ int main() {
 				}
 				system("CLS");
 			} while (tmp_value != 4);
+			tmp_value = 0;
 			break;
 		case 11:
 			//создаем вектор 
@@ -549,8 +577,9 @@ int main() {
 					_getch();
 					break;
 				}
-				
-			} while (tmp_value1!=2);
+
+			} while (tmp_value1 != 2);
+			tmp_value = 0;
 
 			cout << "Наш вектор:";
 			RecElem();
@@ -558,7 +587,7 @@ int main() {
 		default:
 			break;
 		}
-		
+	
 	} while (tmp_value != 12);
 	
 }
